@@ -1,0 +1,350 @@
+---
+title: "Real Estate Analysis"
+output:
+  html_document:
+    fig_caption: yes
+    number_sections: no
+  pdf_document: default
+  word_document: default
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.height=3)
+```
+
+
+\
+
+## 1. Problem Statement
+
+___
+
+
+The aim of this project is to predict price of a real estate property, by analyzing a wide range of house features such as dwelling type, flatness, location, roof material, veneer type, number of rooms, and condition of basement. The project also aims to find out the set of variables that has the most impact on the house price.
+
+\
+
+## 2. Data Import and Check
+
+___
+
+### Libraries needed
+
+```{r message=FALSE}
+library(knitr)
+library(dplyr)
+library(corrplot)
+library(ggplot2)
+library(Metrics)
+library(lars)
+library(randomForest)
+library(data.table)
+library(ragg)
+```
+
+### Data Import
+
+```{r message=FALSE, warning=FALSE}
+train <- read.csv("house_price.csv", stringsAsFactors=FALSE)
+test <- read.csv("house_price_test.csv", stringsAsFactors=FALSE)
+```
+
+```{r message=FALSE,warning=FALSE}
+names(train)
+dim(train)
+str(train[,c(1:10, 81)])
+```
+
+There are 1 predictor variable (SalePrice) and 79 explanatory variables excluding ID variable. The predictor variable is continuous numeric variable, so I will build a linear model.
+
+### Predictor Variable
+
+```{r message=FALSE,warning=FALSE}
+hist(train$SalePrice, main="Histogram of Sale Price")
+```
+
+The histogram shows heavy right skewness in the data. we can also see some potential outliers. It seems that there were a few people influencing the price of expensive houses.
+
+```{r message=FALSE,warning=FALSE}
+summary(train$SalePrice)
+```
+
+75 percent of the houses are below 214,000. The median is 163,000 and mean is 180,921. There is a huge gap between these values and the maximum value.
+
+### Numeric Variables
+
+```{r message=FALSE,warning=FALSE}
+numericVars <- which(sapply(train, is.numeric))
+numericVarNames <- names(numericVars)
+cat('There are', length(numericVars), 'numeric variables')
+```
+
+
+\
+
+## 3. Data Pre-processing
+
+___
+
+```{r message=FALSE,warning=FALSE}
+# combine the dataset
+train$IsTrainSet <- TRUE
+test$IsTrainSet <- FALSE
+test$SalePrice <- NA
+house.full <- rbind(train, test)
+```
+
+### Missing Values
+
+After summarizing the training set, we found that some columns got too many missing values.
+
+```{r message=FALSE, warning=FALSE, fig.height=6, fig.width=15}
+Num_NA<-sapply(house.full, function(y)length(which(is.na(y)==T)))
+NA_Count<- data.frame(Item=colnames(train),Count=Num_NA)
+
+barplot(height=NA_Count$Count, names=NA_Count$Item,
+        hotiz=T, las=1, main= "Counts of Missing Values")
+NA_Count$Item[NA_Count$Count>800]
+```
+
+Among 79 variables, "Alley", "PoolQC", "Fence" and "MiscFeature" have amazingly high number of missing values.
+
+```{r message=FALSE,warning=FALSE}
+house.full$Alley <- NULL
+house.full$PoolQC <- NULL
+house.full$Fence <- NULL
+house.full$MiscFeature <- NULL
+dim(house.full)
+```
+
+I have decided to remove those variables. After that, the number of effective variables has shrunken to 75 (excluding id).
+
+Then, I created the dataset 'Num' to sort out the numeric variables in particular for the convenience of descriptive analysis.
+
+```{r message=FALSE,warning=FALSE}
+# Numeric Variables
+Num<-sapply(house.full,is.numeric)
+Num<-house.full[,Num]
+
+dim(Num)
+
+for(i in 1:77){
+  if(is.character(house.full[,i])){
+    house.full[,i] <- as.factor(house.full[,i])
+  }
+}
+
+for(i in 1:77){
+  if(is.factor(house.full[,i])){
+    house.full[,i] <- as.integer(house.full[,i])
+  }
+}
+
+# Test
+house.full$Street[1:50]
+```
+
+Finally, for the remaining missing values, I decided to replace them with zero directly.
+
+```{r message=FALSE,warning=FALSE}
+house.full[is.na(house.full)] <- 0
+Num[is.na(Num)] <- 0
+```
+
+```{r message=FALSE,warning=FALSE}
+# Separate the dataset
+house.train <- house.full[house.full$IsTrainSet == TRUE, ]
+house.test <- house.full[house.full$IsTrainSet == FALSE, ]
+```
+
+
+\
+
+## 3. Descriptive Analysis
+
+___
+
+### Correlation Matrix
+
+I first draw a corrplot of numeric variables. Those with strong correlation with sale price are examined.
+
+```{r message=FALSE,warning=FALSE, fig.width=7, fig.height=9}
+correlations<- cor(Num, use="everything")
+corrplot(correlations, method="circle", type="lower", sig.level = 0.01, insig = "blank",
+         tl.cex = 0.5)
+```
+
+According to the plot, 'OverallQual','TotalBsmtSF','GarageCars' and 'GarageArea' have relative strong correlation with each other. Therefore, as an example, we plot the correlation among those four variables and SalePrice.
+
+### Scatterplot Matrix
+
+```{r message=FALSE,warning=FALSE}
+pairs(~SalePrice+OverallQual+TotalBsmtSF+GarageCars+GarageArea,data=house.full,
+      main="Scatterplot Matrix")
+```
+
+The dependent variable (SalePrice) looks having decent linearity when plotting with other variables. However, it is also obvious that some independent variables also have linear relationship with others. The problem of multicollinearity is obvious and should be treated when the quantity of variables in regression formula is huge.
+
+The final descriptive analysis I put here would be the relationship between year variables and Sale Price
+
+### Sale Price and Year Built
+
+```{r message=FALSE,warning=FALSE}
+p<- ggplot(house.full,
+           aes(x= YearBuilt, y=SalePrice))+geom_point()+geom_smooth()
+p + ggtitle("Scatter plot of SalePrice and YearBuilt")
+```
+
+We can see that there is an increasing trend between the house price and the year built.
+
+### Sale Price and Year Sold
+
+```{r message=FALSE,warning=FALSE}
+p<- ggplot(house.full,
+           aes(x= YrSold, y=SalePrice))+geom_point()+geom_smooth()
+p + ggtitle("Scatter plot of SalePrice and YrSold")
+```
+
+### Sale Price and Year Remodeled
+
+```{r message=FALSE,warning=FALSE}
+p<- ggplot(house.full,
+           aes(x=YearRemodAdd, y=SalePrice))+geom_point()+geom_smooth()
+p + ggtitle("Scatter plot of SalePrice and YearRemodAdd")
+```
+
+There doesn't seem to be a relationship between the price of the houses and the year when the houses were sold. However, it appears that there is some relationship between their price and the year when they were remodeled.
+
+
+\
+
+## 4. Model Building
+
+___
+
+Before implementing models, I first divided the data set into 2 parts: a training set and a test set that can be used for evaluation. For this analysis, I decided to split it with the ratio of 6:4.
+
+```{r message=FALSE,warning=FALSE}
+# Split the data into Training and Test Set Ratio: 6:4
+Training_Inner<- house.train[1:floor(length(house.train[,1])*0.6),]
+Test_Inner<- house.train[(length(Training_Inner[,1])+1):1460,]
+```
+
+I will fit three regression models to the training set and choose the most suitable one by checking RMSE value.
+
+### Model 1: Linear Regression
+
+The first and simplest but useful model is linear regression model. As the first step, I put all variables into the model.
+
+```{r message=FALSE,warning=FALSE}
+reg1<- lm(SalePrice~., data = Training_Inner)
+summary(reg1)
+```
+
+R squared is not bad. This full model can explain about 88 percent of the variability.
+
+However, many variables do not have statistical significance and there is a potential over fitting problem. Therefore, the variable selection process is should be involved in model construction.
+
+I will manually build a model by checking the result of Hypothesis testing.
+
+```{r message=FALSE,warning=FALSE}
+reg2 <- lm(SalePrice ~ LotFrontage + LotArea + Street + Condition2 + OverallQual + OverallCond + YearBuilt + RoofMatl + ExterQual +BsmtQual + BsmtFinSF1 + BsmtFinSF2 + BsmtUnfSF + X1stFlrSF + X2ndFlrSF + BedroomAbvGr + KitchenAbvGr + KitchenQual + TotRmsAbvGrd + Functional + Fireplaces + FireplaceQu + GarageYrBlt + GarageArea + WoodDeckSF + ScreenPorch + SaleCondition, Training_Inner)
+
+summary(reg2)
+```
+
+Still, the R-squared is not bad. Now, all the variables are significant.
+
+```{r message=FALSE,warning=FALSE, fig.width=9, fig.height=6}
+layout(matrix(c(1,2,3,4), 2, 2, byrow = TRUE))
+plot(reg2)
+#par(mfrow=c(1,1))
+par(mar=c(0,0,0,0))
+```
+
+The diagnosis of residuals is also not bad. The normal Q-Q plot indicates normality.
+
+We check the performance of linear regression model with RMSE value.
+
+### Model Performance
+
+```{r,message=FALSE,warning=FALSE}
+Prediction_1<- predict(reg2, newdata= Test_Inner)
+mse_lr <- mse(log(Test_Inner$SalePrice),log(Prediction_1))
+rmse_lr <- rmse(log(Test_Inner$SalePrice),log(Prediction_1))
+cat('MSE (Mean Square Error): ', mse_lr, '\n','RMSE (Root Mean Square Error): ', rmse_lr)
+```
+
+### Model 2: Lasso Regression
+
+For the avoidance of multi-colinearity, implementing LASSO regression is not a bad idea. Transferring the variables into the form of matrix, we can automate the selection of variables by implementing 'lars' method in Lars package.
+
+```{r,message=FALSE,warning=FALSE}
+Independent_variable <- as.matrix(Training_Inner[,1:76])
+Dependent_variable <- as.matrix(Training_Inner[,77])
+
+laa<- lars(Independent_variable, Dependent_variable, type = 'lasso')
+plot(laa)
+```
+
+The plot is messy as the quantity of variables is intimidating. Despite that, we can still use R to find out the model with least multi-collinearity. The selection procedure is based on the value of Marrow's cp, an important indicator of multi-colinearity. The prediction can be done by the script-chosen best step and RMSE can be used to assess the model.
+
+### Model Performance
+
+```{r,message=FALSE,warning=FALSE}
+best_step <- laa$df[which.min(laa$Cp)]
+Prediction_2<- predict.lars(laa, newx =as.matrix(Test_Inner[,1:76]), s=best_step, type= "fit")
+mse_lasso <- rmse(log(Test_Inner$SalePrice),log(Prediction_2$fit))
+rmse_lasso <- rmse(log(Test_Inner$SalePrice),log(Prediction_2$fit))
+cat('MSE (Mean Square Error): ', mse_lasso, '\n','RMSE (Root Mean Square Error): ', rmse_lasso)
+```
+
+### Model 3: Random Forest
+
+The other model I chose to fit in the training set is Random Forest model. The model, prediction and RMSE calculation can be found below:
+
+```{r,message=FALSE, warning=FALSE}
+test <- as.data.frame(test)
+for_1 <- randomForest(SalePrice~., data=Training_Inner)
+prediction_3 <- predict(for_1, newdata=Test_Inner)
+mse_rf <- mse(log(Test_Inner$SalePrice), log(prediction_3))
+rmse_rf <- rmse(log(Test_Inner$SalePrice), log(prediction_3))
+cat('MSE (Mean Square Error): ', mse_rf, '\n','RMSE (Root Mean Square Error): ', rmse_rf)
+```
+
+
+\
+
+## 5. Final Prediction
+___ 
+
+Among the three models, Random Forest may produce the best result within the training set.
+
+### Summary of Final Model
+
+```{r,message=FALSE,warning=FALSE}
+print(for_1)
+```
+
+```{r,message=FALSE,warning=FALSE}
+pred <- predict(for_1, newdata=house.test)
+output.df <- as.data.frame(pred)
+output.df <- tibble::rownames_to_column(output.df, "row_names")
+output.df <- setnames(output.df, old = c('row_names', 'pred'), 
+         new = c('Id', 'SalePrice'))
+```
+
+
+\
+
+## 6. Conclusion
+
+___
+
+We were interested in investigating the relationship between the house price and a list of variables and building a model to predict house prices. 
+
+we conclude that our final model is Random Forest because of better performance. Using Random Forest, the model explains about 85.13 percent of the variance. 
+
+The performance of the model is:
+* MSE (Mean Square Error):  0.02227288
+* RMSE (Root Mean Square Error):  0.149241
