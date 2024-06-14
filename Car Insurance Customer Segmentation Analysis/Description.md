@@ -1,16 +1,15 @@
 # Insurance Customer Segmentation Analysis
 
-![market-segmentation.png](attachment:market-segmentation.png)
+![market-segmentation](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/assets/59913944/eca5819e-363d-4973-bf33-d3cfacedc3fa)
 
 ## Project Overview
-___
 
 Our client, an insurance company, has successfully provided health insurance to its customers and now seeks to understand which of these customers would be interested in their vehicle insurance offerings. Vehicle insurance, like health insurance, requires customers to pay an annual premium to the insurance provider, which then covers costs in case of vehicle accidents.
 
 This project aims to conduct a segmentation analysis of health insurance customers to identify those who are also interested in vehicle insurance. Customer segmentation is crucial for businesses as it helps identify potential customers within a market by understanding the characteristics of existing customers. By analyzing these characteristics, the company can find individuals who share similarities with their loyal customers.
 
 ## Dataset Information
-___
+
 The dataset used in this project is downloaded from Health Insurance Cross Sell dataset uploaded on kaggle. This dataset involves information about demographics, vehicles and policy. The preprocessed and cleaned version of the dataset from Car Insurance Sales Project will be used.
 
 ### Data Dictionary
@@ -30,18 +29,16 @@ The dataset used in this project is downloaded from Health Insurance Cross Sell 
 | Response             	|                                           	|                                                     	|
 
 ## Approach
-___
+
 The project will involve several steps, including data preprocessing, exploratory data analysis, feature engineering, clustering, model selection, and evaluation. Techniques such as data cleaning, handling missing values, feature scaling, and encoding categorical variables will be employed to prepare the dataset for model training. Various unsupervised machine learning algorithms, such as K-means Clustering and Principal Component Analysis (PCA) will be explored and evaluated to determine the most suitable model for effective segmentation.
 
 ## Impact
-___
 
 Through this project, we aim to provide actionable insights for the insurance company to strategically target health insurance customers who are likely to be interested in purchasing vehicle insurance. By segmenting customers based on their likelihood of buying vehicle insurance, the company can tailor communication strategies to meet specific segment needs, enhancing engagement and optimizing marketing efforts through effective channels.
 
 This approach is expected to improve customer acquisition by focusing resources on individuals with higher conversion potential, thereby expanding the customer base and increasing revenue from vehicle insurance policies. Moreover, leveraging data-driven insights allows the company to refine product offerings and service delivery, boosting customer satisfaction and loyalty while driving sustainable business growth in a competitive insurance market.
 
 ## Business Questions
-___
 
 1. Can we identify distinct customer segments based on particular variables? 
 2. What are the key characteristics of each customer segment?
