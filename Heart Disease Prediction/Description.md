@@ -1,13 +1,13 @@
 # Heart Stroke Prediction
 
-![unwell-man-feel-sick-suffer-from-heart-stroke-sick-unhappy-guy-touch-upper-chest-having-cardiovascular-problems-need-doctor-help-healthcare-and-medicine-illustration-free-vector.jpg](attachment:unwell-man-feel-sick-suffer-from-heart-stroke-sick-unhappy-guy-touch-upper-chest-having-cardiovascular-problems-need-doctor-help-healthcare-and-medicine-illustration-free-vector.jpg)
+![heart_stroker](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/assets/59913944/4eeac766-f73c-47be-bbf0-f0f44988e3fc)
 
 ## Project Overview
----
+
 This data science project aims to predict the probability of a patient experiencing a stroke based on various input parameters, including perfluorooctanoic acid (PFOA) levels, alongside a range of health, nutritional, and biochemical variables. The dataset contains relevant information for each patient, enabling the development of a predictive model.
 
 ## Dataset Information
----
+
 The dataset used in this project contains data from four years of the NHANES health survey in the US. This survey measures a huge range of health, nutrition, and biochemical variables on a probability sample of the US population.
 
 ### Data Dictionary
@@ -27,5 +27,5 @@ The dataset used in this project contains data from four years of the NHANES hea
 | LBXTC    	| Blood cholesterol levels (mg/dL)                                                                 	|                                                                                           	|
 
 ## Context
-___
+
 According to the World Health Organization (WHO), stroke is the second leading cause of death worldwide, responsible for approximately 11% of all deaths. This project aims to utilize machine learning techniques to create a predictive model capable of identifying individuals at high risk of stroke by analyzing their demographic and health-related characteristics. By accurately identifying those at high risk early, healthcare providers can implement targeted preventive measures. This proactive approach has the potential to significantly reduce the incidence and severity of strokes, thereby improving health outcomes and saving lives.
