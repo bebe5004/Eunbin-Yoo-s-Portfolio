@@ -1,6 +1,7 @@
 # Heart Stroke Prediction
 
-![unwell-man-feel-sick-suffer-from-heart-stroke-sick-unhappy-guy-touch-upper-chest-having-cardiovascular-problems-need-doctor-help-healthcare-and-medicine-illustration-free-vector.jpg](attachment:unwell-man-feel-sick-suffer-from-heart-stroke-sick-unhappy-guy-touch-upper-chest-having-cardiovascular-problems-need-doctor-help-healthcare-and-medicine-illustration-free-vector.jpg)
+![heart_stroker](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/assets/59913944/80c9b349-3acf-430c-8cb5-624b03af5482)
+
 
 ## Project Overview
 ---
