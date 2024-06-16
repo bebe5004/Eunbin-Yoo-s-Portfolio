@@ -1,14 +1,13 @@
 # Life Expectancy Prediction
 
-![life_expectancy.png](attachment:life_expectancy.png)
+![life_expectancy](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/assets/59913944/5a1018dc-9b52-4d20-971b-3159bf8f4888)
+
 
 ## Project Overview
-___
 
 There is little doubt that life expectancy increased in the past decade. Why is life expectancy longer now? What influences our lifespan? This project aims to explore the WHO Life Expectancy dataset to investigate trends and disparities in global life expectancy through analysis and visualizations using python libraries, matplotlib, seaborn and plotly. The project also aims to build a regression model to predict life expectancy of a country, by analyzing various demographic, socio-economic and health variables.
 
 ## Dataset Information
-___
 
 The dataset used in this project is Life Expectancy (WHO) dataset from Kaggle. This dataset contains observations on factors related to life expectancy from a period of 2000 to 2015 for all the countries, such as immunization factors, mortality factors, economic factors, social factors and other health related factors as well.
 
@@ -41,18 +40,13 @@ The dataset used in this project is Life Expectancy (WHO) dataset from Kaggle. T
 
 ## Approach
 
-___
-
 The project will involve several steps, including data preprocessing, exploratory data analysis, feature engineering, model selection, and evaluation. Techniques such as data cleaning, handling missing values, feature scaling, and encoding categorical variables will be employed to prepare the dataset for model training. Various regression algorithms, such as linear regression, random forests will be explored and evaluated to determine the most suitable model for accurate life expectancy prediction.
 
 ## Impact
 
-___
-
 The development of a machine learning model to predict life expectancy can significantly benefit countries with lower life expectancy by identifying key predictive factors from a diverse dataset. This enables nations to pinpoint critical areas needing improvement, such as healthcare access, education levels, or nutrition. By providing targeted insights, the model helps governments formulate informed strategies and policies, allocate resources effectively, and implement relevant programs. This focused approach ensures efforts are directed towards the most impactful areas, ultimately leading to improved health outcomes, reduced mortality rates, and a healthier, more productive society.
 
 ## Questions
-___
 
 These questions will be answered throughout the project:
 1. What are the predicting variables actually affecting the life expectancy?
