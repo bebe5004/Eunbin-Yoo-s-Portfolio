@@ -6,4 +6,4 @@ Welcome to my Data Science Projects Portfolio! This portfolio is a collection of
 
 ## Projects
 
-1. Car Insurance Customer Segmentation(Documentation/file.pdf)
+1. [Car Insurance Sales Prediction](Car Insurance Sales Prediction)
