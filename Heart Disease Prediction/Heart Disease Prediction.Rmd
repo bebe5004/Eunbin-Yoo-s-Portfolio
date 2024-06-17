@@ -1,0 +1,441 @@
+---
+title: "Heart Disease Prediction"
+output: 
+  html_document:
+    fig_caption: yes
+    number_sections: no
+  pdf_document:
+    number_sections: no
+  word_document:
+    number_sections: no
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.height=3)
+```
+
+
+\
+
+## 1. Problem Statement
+
+___
+
+The project aims to predict the probability of heart disease of a patient using a range of demographic, health, nutrition and biochemical variables, such as age, ethnicity, smoking status, blood pressure and perperfluorooctanoic acid(PFOA). The project also aims to find out the set of variables that has the most impact on the occurrence of heart disease.
+
+\
+
+## 2. Data Import & Check
+
+___
+
+### Libraries needed
+
+```{r load-packages, message=FALSE}
+# Loading the library
+library(knitr)
+library(statmod)
+library("mgcv")
+library(MuMIn)
+library(pROC)
+```
+
+### Dataset 
+
+```{r echo=T}
+# Loading the data
+pfoa.df <- read.csv("heart_disease.csv")
+head(pfoa.df)
+str(pfoa.df)
+summary(pfoa.df)
+```
+
+
+\
+
+## 3. Data Pre-processing
+
+___
+
+```{r echo=T, message=FALSE}
+#Convert pfoa4, DMDEDUC, RIDRETH1, RIAGENDR and smoking as categorical variables
+pfoa.df$pfoa4 <- as.factor(pfoa.df$pfoa4)
+pfoa.df$DMDEDUC <- as.factor(pfoa.df$DMDEDUC)
+pfoa.df$RIDRETH1 <- as.factor(pfoa.df$RIDRETH1)
+pfoa.df$RIAGENDR <- as.factor(pfoa.df$RIAGENDR)
+pfoa.df$smoking <- as.factor(pfoa.df$smoking)
+
+#Convert RIDAGEEX to age in years
+pfoa.df$RIDAGEEX <- pfoa.df$RIDAGEEX/12
+
+#Rename levels for DMDEDUC
+levels(pfoa.df$DMDEDUC)[levels(pfoa.df$DMDEDUC)=="1"] <- "< High school"
+levels(pfoa.df$DMDEDUC)[levels(pfoa.df$DMDEDUC)=="2"] <- "High school"
+levels(pfoa.df$DMDEDUC)[levels(pfoa.df$DMDEDUC)=="3"] <- "> High school"
+#Treat 'Refused' and 'Don't know' as NA for DMDEDUC
+levels(pfoa.df$DMDEDUC)[levels(pfoa.df$DMDEDUC)=="7"] <- NA
+levels(pfoa.df$DMDEDUC)[levels(pfoa.df$DMDEDUC)=="9"] <- NA
+pfoa.df$DMDEDUC <- droplevels(pfoa.df$DMDEDUC)
+
+#Rename levels for RIDRETH1
+levels(pfoa.df$RIDRETH1)[levels(pfoa.df$RIDRETH1)=="1"] <- "Mexican Hispanic"
+levels(pfoa.df$RIDRETH1)[levels(pfoa.df$RIDRETH1)=="2"] <- "Other Hispanic"
+levels(pfoa.df$RIDRETH1)[levels(pfoa.df$RIDRETH1)=="3"] <- "non-Hispanic White"
+levels(pfoa.df$RIDRETH1)[levels(pfoa.df$RIDRETH1)=="4"] <- "non-Hispanic Black"
+levels(pfoa.df$RIDRETH1)[levels(pfoa.df$RIDRETH1)=="5"] <- "other"
+
+#Rename levels for RIAGENDR
+levels(pfoa.df$RIAGENDR)[levels(pfoa.df$RIAGENDR)=="1"] <- "Male"
+levels(pfoa.df$RIAGENDR)[levels(pfoa.df$RIAGENDR)=="2"] <- "Female"
+```
+
+```{r echo=T}
+#Omit NA values
+pfoa.df <- na.omit(pfoa.df)
+row.names(pfoa.df) <- 1:nrow(pfoa.df)
+```
+
+### Pairs plot of the numeric variables
+
+```{r fig.width=9, fig.height=6}
+#Pairs plot of the numeric variables
+my_cols <- c("#00AFBB", "#FC4E07")  
+pairs(pfoa.df[,c(4,5,8,9,11)], pch = 20, col=my_cols[factor(pfoa.df$hadcvd)], oma=c(3,3,3,15))
+par(xpd = TRUE)
+legend("bottomright", col=my_cols[c(1:2)], legend= levels(factor(pfoa.df$hadcvd)), pch=19)
+```
+
+```{r echo=T, message=FALSE}
+#Identify the outlier
+subset(pfoa.df, BPXSAR == 0)
+#Delete the outlier
+pfoa.new <- pfoa.df[-c(1222),]
+row.names(pfoa.new) <- 1:nrow(pfoa.new)
+```
+
+The plot indicates some unusual observations for BPXSAR. This observation seems to be a mistake because it has 0 value of BPXSAR which is impossible. It may be useful to delete this.
+
+```{r echo=T, message=FALSE}
+#Split the data set into training and test data
+set.seed(330)
+N <- 1000
+sam<-sample(1:nrow(pfoa.new))
+pfoa1.df<-pfoa.new[sam[1:N], ]
+row.names(pfoa1.df)<-1:nrow(pfoa1.df)
+pfoa2.df<-pfoa.new[sam[(N+1):nrow(pfoa.new)], ]
+row.names(pfoa2.df)<-1:nrow(pfoa2.df)
+
+#Summary
+summary(pfoa1.df)
+```
+
+```{r message = FALSE}
+#Summary
+summary(pfoa2.df)
+```
+
+\
+
+## 4. Model building: Part 1
+
+___
+
+### Model 1: GLM Model
+
+The response variable, hadcvd, is binary data, so I will fit a binomial logistic regression model.
+
+```{r echo=T, message=FALSE}
+#Logistic regression model with all the variables
+pfoa1.glm<-glm(hadcvd ~ pfoa4 + DMDEDUC + LBXGH + RIDAGEEX + RIDRETH1 + RIAGENDR + BPXSAR + BPXDAR + smoking + LBXTC, family="binomial", data=pfoa1.df)
+summary(pfoa1.glm)
+```
+
+```{r fig.width=9, fig.height=6, message=FALSE}
+#Goodness of fit
+plot(predict(pfoa1.glm), residuals(pfoa1.glm, type="pearson"), main="Pearson residuals")
+plot(predict(pfoa1.glm), qresiduals(pfoa1.glm), main="Randomised quantile residuals")
+abline(h=0, lty="dashed", col='blue')
+qqnorm(residuals(pfoa1.glm))
+qqline(residuals(pfoa1.glm))
+```
+
+We have strong evidence to keep RIDAGEEX, but BPXSAR and BPXDAR are not statistically significant. The normal Q-Q plot indicates some non-normality, but this does not seem to be a big issue. Now, I will use dredge() function to search for a suitable predictive model.
+
+### Model 2: GAM model
+
+Now, I will fit a GAM model to see whether non-linear terms should be added.
+
+```{r echo=T, message=FALSE}
+#GAM model 
+pfoa1.gam <- gam(hadcvd ~ pfoa4 + DMDEDUC + s(LBXGH) + s(RIDAGEEX) + RIDRETH1 + RIAGENDR + s(BPXSAR) + s(BPXDAR) + smoking + s(LBXTC), family="binomial", data=pfoa1.df)
+print(summary(pfoa1.gam)$p.table)
+print(summary(pfoa1.gam)$s.table)
+par(mfrow=c(2,3))
+```
+
+```{r message=FALSE}
+#GAM plot 
+plot(pfoa1.gam)
+```
+
+The summary output and plots indicate some non-linear effects in RIDAGEEX and BPXSAR. It may be useful to add quadratic terms for these variables.
+
+### Model 3: GLM model with quadratic terms
+
+```{r echo=T, message=FALSE}
+#GLM model with quadratic terms for RIDAGEEX and BPXSAR
+pfoa1.glm2 <- glm(hadcvd ~ pfoa4 + DMDEDUC + LBXGH + RIDAGEEX + I(RIDAGEEX^2) + RIDRETH1 + RIAGENDR + BPXSAR + I(BPXSAR^2) + BPXDAR + smoking + LBXTC, family="binomial", data=pfoa1.df)
+summary(pfoa1.glm2)
+anova(pfoa1.glm, pfoa1.glm2, test="Chisq")
+```
+
+We have evidence that adding at least one of these quadratic terms improves the model. BPXSAR is not significant, so I will use a interaction term for only RIDAGEEX. 
+
+### Model 4: Full model
+
+```{r echo=T, message=FALSE}
+#Full model
+pfoa1.full <- glm(hadcvd ~ pfoa4 + DMDEDUC + LBXGH + RIDAGEEX + I(RIDAGEEX^2) + RIDRETH1 + RIAGENDR + BPXSAR + BPXDAR + smoking + LBXTC, family="binomial", data=pfoa1.df)
+summary(pfoa1.full)
+```
+
+The full model I will use is pfoa1.full.
+
+\
+
+## 5. Model Selection
+
+___
+
+### AIC and BIC
+
+```{r echo=T, message=FALSE}
+#AICc
+options(na.action = "na.fail")
+pfoa1.aic <- dredge(pfoa1.full)
+options(na.action = "na.omit")
+head(pfoa1.aic)
+#BIC
+options(na.action = "na.fail")
+pfoa1.bic <- dredge(pfoa1.full, rank="BIC")
+options(na.action = "na.omit")
+head(pfoa1.bic)
+```
+
+### Estimates of the AUCs
+
+```{r echo=T, message=FALSE}
+#The AIC list
+options(width=66)
+out=rep(0,30)
+for(i in 1:30) {
+  newpreds=predict(get.models(pfoa1.aic,i)[[1]],
+                   newdata=pfoa2.df, type="response")
+  my.roc=roc(response=pfoa2.df$hadcvd,
+             predictor=newpreds, ci=TRUE)
+  out[i]=my.roc$auc
+}
+round(out,3)
+```
+
+```{r echo=T, message=FALSE}
+#The BIC list
+options(width=66)
+out=rep(0,30)
+for(i in 1:30) {
+  newpreds=predict(get.models(pfoa1.bic,i)[[1]],
+                   newdata=pfoa2.df, type="response")
+  my.roc=roc(response=pfoa2.df$hadcvd,
+             predictor=newpreds, ci=TRUE)
+  out[i]=my.roc$auc
+}
+round(out, 3)
+```
+
+24th model (0.724) from the AICc list and 26th model (0.726) from the BIC list have the highest AUC values in each list.
+
+```{r echo=T, message=FALSE}
+#Model from the AICc list
+model24 <- get.models(pfoa1.aic, 24)[[1]]
+summary(model24)
+#Model from the BIC list
+model26 <- get.models(pfoa1.bic, 26)[[1]]
+summary(model26)
+```
+
+### Final model
+
+```{r message=FALSE}
+#Model 24 from the AICc list
+pfoa.fit24 <- glm(hadcvd ~ BPXDAR + I(BPXSAR^2) + DMDEDUC + LBXGH + 
+    LBXTC + pfoa4 + RIAGENDR + RIDAGEEX + I(RIDAGEEX^2) + RIDRETH1 + 
+    smoking, family = "binomial", 
+    data = pfoa.new)
+summary(pfoa.fit24)
+```
+
+```{r message=FALSE}
+#Goodness of fit
+plot(predict(pfoa.fit24), qresiduals(pfoa.fit24), main="Randomised quantile residuals")
+abline(h=0, lty="dashed", col='blue')
+qqnorm(residuals(pfoa.fit24))
+qqline(residuals(pfoa.fit24))
+```
+
+26th model from the BIC list has slightly higher value of AUC than 24th model from the AICc list. But, this model is too simple and has higher AIC value.
+So, pfoa.fit24 will be the final model. 
+
+### Confusion matrix
+
+```{r message=FALSE}
+#Confusion matrix
+table(actual=pfoa.new$hadcvd, pred=round(fitted(pfoa.fit24)))
+```
+
+The estimated specificity is very high, but the estimated sensitivity is very low. Estimated prediction error is 0.167. The model is good at detecting those who don't have heart disease, but performs bad in detecting those who have heart disease.
+
+### Interpretation of coefficients
+
+* According to this model, we have some evidence that the increase in diastolic blood pressure decreases the probability of having heart disease. Holding other variables as constant, we estimate that, for every 1 unit increase in diastolic blood pressure, the odds of having heart disease is multiplied by about 0.99. The model also suggests that, at lower values, the increase in systolic blood pressure increases the odds of having heart disease, but at higher values, the odds of having heart disease decreases as systolic blood pressure increases.
+
+* We have some evidence that high level of education decreases the probability of having heart disease. Holding other variables as constant, we estimate that, the odds of patients whose highest education completed is more than high school having heart disease is about 0.53 times those of patients whose highest education completed is less than high school.
+
+* We have some evidence that an increase in blood concentration of glycosylated haemoglobin increases the probability of having heart disease. Holding other variables as constant, we estimate that, for every 1 unit increase in glycosylated haemoglobin, the odds of having heart disease is multiplied by about 1.18.
+
+* We have some evidence that an increase in blood cholesterol levels decreases the probability of having heart disease. Holding other variables as constant, we estimate that, for every 1 unit increase in cholestrol levels, the odds of having heart disease is multiplied by about 0.10.
+
+* There is some evidence to suggest that higher blood concentration level of PFOA increases the probability of having heart disease. Holding other variables as constant, we estimate that the odds of a patient whose level of PFOA is Q3 having heart disease is about 1.81 times those of a patient whose level of PFOA is Q1. For a patient whose level of PFOA is Q4, we estimate that the odds of having heart disease is about 1.72 times those of a patient whose level of PFOA is Q1. 
+
+* There is some evidence that the probability of having heart disease decreases when a patient is female. Holding other variables as constant, we estimate that the odds of a female patient having heart disease is about 0.67 times those of a male patient.
+
+* There is evidence that the probability of having heart disease increases as a patient ages. Holding other variables as constant, we estimate that the odds of having heart disease is multiplied by 1.25 every 1 year increase in age. But, at some point of age, the odds start to decrease.
+
+* There is evidence that the probability of having heart disease increases when a patient is non-hispanic. Holding other variables as constant, we estimate that the odds of a non-hispanic white patient having heart disease is about 2.01 times those of a mexican hispanic patient. For a non-hispanic black patient, we estimate that the odds of having heart disease is about 1.77 times those of a mexican hispanic patient. For a patient in other racial/ethnic group, we estimate that the odds of having heart disease is about 4.28 times those of a mexican hispanic patient.
+
+* There is no evidence that smoking affects the probability of having heart disease.
+
+### ROC curve showing the performance of the model 
+
+```{r message=FALSE}
+#ROC curve using test data
+preds <- predict(model24, newdata=pfoa2.df, type="response")
+test.roc <- roc(response=pfoa2.df$hadcvd, predictor=preds)
+plot(test.roc, col="blue", grid=TRUE, lwd=2.5, cex.lab=0.7, cex.axis=0.5, main="ROC curve for PFOA model using test data")
+
+#refit the model using the entire dataset
+pfoa.roc <- roc(response=pfoa.new$hadcvd,
+                predictor=fitted.values(pfoa.fit24))
+plot(pfoa.roc, col="blue", grid=TRUE, lwd=2.5, cex.lab=0.7, cex.axis=0.5, main="ROC curve for PFOA model using entire data")
+```
+
+The area under the ROC curve is greater than 0.5 for both test data and entire dataset. The model seems to have good performance in predicting the probability of heart disease.
+
+\
+
+## 6. Model Building: Part 2
+
+___
+
+To estimate the total effect of pfoa4 on hadcvd, we need to include pfoa4, education(DMDEDUC), ethnicity(RIDRETH1), age(RIDAGEEX), gender(RIAGENDR) and smoking.
+
+Blood pressure(BPXSAR, BPXDAR), cholesterol(LBXTC) and diabetes(LBXGH) should be excluded because they are on indirect causal pathways from pfoa4 to hadcvd. 
+
+All confounding pathways should be closed, so we need to include education(DMDEDUC), ethnicity(RIDRETH1) and age(RIDAGEEX) which are confounders for pfoa4. 
+
+We also need to include age(RIDAGEEX), smoking and gender(RIAGENDR) as they have direct effects on hadcvd.
+
+### Fitting a GLM model using these variables
+
+```{r message=FALSE}
+pfoa.glm2 <- glm(hadcvd ~ pfoa4 + DMDEDUC + RIDRETH1 + RIDAGEEX + smoking + RIAGENDR, family="binomial", data=pfoa.new)
+summary(pfoa.glm2)
+```
+
+RIDAGEEX is very statistically significant so we should not drop it. There are some evidence that suggest keeping DMDEDUC, RIDRETH1 and RIAGENDR in the model.
+
+### Fitting a GLM model using these variables
+
+```{r message=FALSE}
+pfoa.gam2 <- gam(hadcvd ~ pfoa4 + DMDEDUC + RIDRETH1 + s(RIDAGEEX) + smoking + RIAGENDR, family="binomial", data=pfoa.new)
+print(summary(pfoa.gam2)$p.table)
+print(summary(pfoa.gam2)$s.table)
+plot(pfoa.gam2)
+```
+
+RIDAGEEX has a edf value greater than 2 and there is some indication of non-linearity in the plot. I will consider adding a quadratic term for RIDAGEEX.
+
+### Fitting a GLM model with quadratic terms
+
+```{r}
+pfoa.glm3 <- glm(hadcvd ~ pfoa4 + DMDEDUC + RIDRETH1 + RIDAGEEX + I(RIDAGEEX^2) + smoking + RIAGENDR, family="binomial", data=pfoa.new)
+anova(pfoa.glm2, pfoa.glm3, test="Chisq")
+```
+
+We have some evidence to include the quadratic term for RIDAGEEX.
+
+### Interaction terms
+
+Now, I will test whether adding any interaction term improves the model. 
+
+```{r}
+pfoa.glm4 <- glm(hadcvd ~ pfoa4 + DMDEDUC * RIDRETH1 * (RIDAGEEX + I(RIDAGEEX^2)) * smoking * RIAGENDR, family="binomial", data=pfoa.new)
+anova(pfoa.glm2, pfoa.glm4, test="Chisq")
+```
+
+There is no evidence to suggest that including any interaction term would improve the model.
+
+\
+
+## 7. Final model
+
+___
+
+```{r echo=T, message=FALSE}
+summary(pfoa.glm3)
+```
+
+According to this model, there is some evidence to suggest that higher blood concentration level of PFOA increases the probability of having heart disease. 
+
+* We do not have evidence that a patient whose level of PFOA is Q2 have higher probability of having heart disease than a patient whose level of PFOA is Q1. 
+
+* However, we have some evidence that the odds of a patient whose level of PFOA is Q3 having heart disease is about 1.66 times those of a patient whose level of PFOA is Q1. 
+
+* For a patient whose level of PFOA is Q4, we have moderate evidence that the odds of having heart disease is about 1.53 times those of a patient whose level of PFOA is Q1. 
+
+* The probability of having heart disease seems to be highest when a patient's level of PFOA is Q3.
+
+
+### Confusion Matrix
+
+```{r echo=T, message=FALSE}
+predicted <- predict(pfoa.glm3, newdata = pfoa2.df, type="response")
+predicted.f <- ifelse(predicted > 0.4, TRUE, FALSE)
+confusion_matrix <- table(Predicted = predicted.f, Actual = pfoa2.df$hadcvd)
+print(confusion_matrix)
+```
+
+```{r echo=T, message=FALSE}
+# Calculate the accuracy
+accuracy <- (2 + 372) / (2 + 372 + 76 + 6)
+accuracy
+```
+
+\
+
+## 8. Conclusion
+
+___
+
+Our final model is pfoa.glm3 with 82% accuracy.
+
+We were interested in building a model to predict the probability of heart disease using variables, such as perperfluorooctanoic acid(PFOA) and a range of health, nutrition, and biochemical variables.
+
+we conclude that our final model is GLM model with quadratic terms. According to this model, there is some evidence to suggest that higher blood concentration level of PFOA increases the probability of having heart disease. 
+
+* We do not have evidence that a patient whose level of PFOA is Q2 have higher probability of having heart disease than a patient whose level of PFOA is Q1. 
+
+* However, we have some evidence that the odds of a patient whose level of PFOA is Q3 having heart disease is about 1.66 times those of a patient whose level of PFOA is Q1. 
+
+* For a patient whose level of PFOA is Q4, we have moderate evidence that the odds of having heart disease is about 1.53 times those of a patient whose level of PFOA is Q1. 
+
+* The probability of having heart disease seems to be highest when a patient's level of PFOA is Q3.
