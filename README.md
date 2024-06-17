@@ -6,4 +6,4 @@ Welcome to my Data Science Projects Portfolio! This portfolio is a collection of
 
 ## Projects
 
-1. [Car Insurance Sales Prediction]([Car Insurance Sales Prediction](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/tree/main/Car%20Insurance%20Sales%20Prediction))
+1. [Car Insurance Sales Prediction](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/tree/main/Car%20Insurance%20Sales%20Prediction)
