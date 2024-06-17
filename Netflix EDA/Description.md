@@ -39,6 +39,7 @@ Given Netflix's dominant position in the streaming market and entertainment indu
 
 ## Relevant Questions
 
+These questions will be answered throughout the project:
 1. Content Preferences on Netflix: Movies vs. TV Shows
 2. Movies and TV Shows added over time
 3. Which country produces the most content on Netflix?
