@@ -51,4 +51,4 @@ Welcome to my Data Science Projects Portfolio! This portfolio is a collection of
 
 * **Description**: The project aims to predict the probability of heart disease of a patient using a range of demographic, health, nutrition and biochemical variables.
 * **Technologies Used**: The notebooks showcases data visualizations using R libraries such as ggplot2, and uses Generalized Linear Model, Generalized Additive Model and model selection techniques such as AIC and BIC.
-* **Results**: The Generalized Linear Model performs the best.
+* **Results**: The Generalized Linear Model performs the best with 88% accuracy.
