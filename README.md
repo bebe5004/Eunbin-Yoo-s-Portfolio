@@ -11,7 +11,7 @@ Welcome to my Data Science Projects Portfolio! This portfolio is a collection of
 * **Description**: This project aims to conduct an exploratory data analysis on Netflix's content library that would help the media company make informed business decisions.
 * **Technologies Used**: The notebooks showcases data visualizations using Python libraries such as matplotlib, seaborn and plotly.
 
-2. [Movie Recommender System](://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/tree/main/Movie%20Recommender%20System)
+2. [Movie Recommender System](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/tree/main/Movie%20Recommender%20System)
 
 * **Description**: The aim of this project is to develop a content-based recommender system that recommends similar movies to a user's input, by analyzing textual features such as title, genre, description, keywords and credits.
 * **Technologies Used**: The notebooks uses Count Vectorizer, Porter Stemmer, Cosine Similarity and Streamlit library.
