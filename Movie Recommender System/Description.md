@@ -1,6 +1,7 @@
 # Movie Recommender System
 
-<img width="697" alt="streamlit_screen" src="https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/assets/59913944/dec2049c-1def-4d3c-ab04-fe7559abedd9">
+<img width="956" alt="streamlit" src="https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/assets/59913944/29be9fd0-2d3e-4b18-8760-50ee34fafdc3">
+
 
 ## Project Overview
 
