@@ -37,7 +37,7 @@ The project will involve data preprocessing, exploratory data analysis and data 
 
 Given Netflix's dominant position in the streaming market and entertainment industry, exploratory data analysis on Netflix's content library can greatly benefit media producers. By analyzing Netflix's diverse content, companies can develop strategies aligned with viewer preferences, enhancing engagement and market share. Netflix's data-driven approach offers benchmarks for competitive analysis and reveals opportunities for unique content targeting underserved segments. Insights from EDA can refine marketing strategies, user experiences, and investment decisions. Additionally, understanding Netflix's content strategy can highlight partnership opportunities and improve operational efficiency, helping media companies innovate and remain competitive in the evolving entertainment industry.
 
-## Relevant Questions
+## Key Questions
 
 These questions will be answered throughout the project:
 1. Content Preferences on Netflix: Movies vs. TV Shows
