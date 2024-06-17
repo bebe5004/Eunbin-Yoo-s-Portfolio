@@ -46,7 +46,7 @@ The project will involve several steps, including data preprocessing, explorator
 
 The development of a machine learning model to predict life expectancy can significantly benefit countries with lower life expectancy by identifying key predictive factors from a diverse dataset. This enables nations to pinpoint critical areas needing improvement, such as healthcare access, education levels, or nutrition. By providing targeted insights, the model helps governments formulate informed strategies and policies, allocate resources effectively, and implement relevant programs. This focused approach ensures efforts are directed towards the most impactful areas, ultimately leading to improved health outcomes, reduced mortality rates, and a healthier, more productive society.
 
-## Questions
+## Key Questions
 
 These questions will be answered throughout the project:
 1. What are the predicting variables actually affecting the life expectancy?
