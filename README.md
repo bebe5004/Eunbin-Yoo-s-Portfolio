@@ -7,7 +7,7 @@ This portfolio is a collection of my work in data science, highlighting my skill
 ## Portfolio Presentation
 
 1. [Car Insurance Sales Prediction](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/blob/main/Project%20Presentation/Car%20Insurance%20Sales%20Prediction%20(PPT%20Presentation).pdf)
-2. [Car Insurance Customer Segmentation](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/blob/main/Project%20Presentation/Car%20Insurance%20Customer%20Segmentation%20(PPT%20Presentation).pdf)(https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/blob/main/Project%20Presentation/Car%20Insurance%20Customer%20Segmentation%20Analysis%20(PPT%20Presentation).pdf)
+2. [Car Insurance Customer Segmentation](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/blob/main/Project%20Presentation/Car%20Insurance%20Customer%20Segmentation%20(PPT%20Presentation).pdf)
 3. [Movie Recommender System](https://github.com/bebe5004/Eunbin-Yoo-s-Portfolio/blob/main/Project%20Presentation/Movie%20Recommender%20System%20(PPT%20Presentation).pdf)
 
 
